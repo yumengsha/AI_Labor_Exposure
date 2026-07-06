@@ -40,7 +40,7 @@ Compute runs on the **`AI_LABOR_WH`** warehouse (XSMALL, auto-suspend).
    │  AREA (PK)     ├──►│  OCC_CODE, OCC_TITLE       │◄──┤  NAICS (PK)    │
    │  AREA_TITLE    │   │  TOT_EMP, A_MEAN, A_MEDIAN │   │  INDUSTRY_TITLE│
    │  STATE         │   │  WAGE_PERCENTILE, WAGE_BAND│   └────────────────┘
-   └────────────────┘   │  AI_EXPOSURE (placeholder) │
+   └────────────────┘   │  AI_EXPOSURE (real score)  │
                         │  WEIGHTED_EXPOSURE         │   ┌────────────────┐
    ┌────────────────┐   │  EXPOSURE_RANK             │   │ DIM_WAGE_BAND  │
    │   DIM_TASK     │   │  AREA, STATE, NAICS ...    ├──►│ WAGE_BAND (PK) │
@@ -57,15 +57,22 @@ Compute runs on the **`AI_LABOR_WH`** warehouse (XSMALL, auto-suspend).
 - **Dimensions** — `DIM_OCCUPATION`, `DIM_TASK`, `DIM_REGION`, `DIM_INDUSTRY`,
   `DIM_WAGE_BAND`.
 
-### ⚠️ The AI exposure score is a **placeholder**
+### The AI exposure score is real (see `ai_exposure_index/`)
 
-We don't have an external AI-exposure dataset yet, so `AI_EXPOSURE` is a
-**transparent proxy**: the average *normalized O\*NET task importance* per
-occupation, scaled to `0–1`. It lives in its own table
-`ANALYTICS.AI_EXPOSURE_PLACEHOLDER` and every row is tagged
-`SCORE_SOURCE = 'PLACEHOLDER_ONET_IMPORTANCE_PROXY'`. **Replace it** by
-overwriting that table with real scores keyed on `OCC_CODE` — the fact table
-picks them up automatically. No real score is fabricated.
+All 18,796 O\*NET tasks have been scored by Claude on three independent 0-to-1
+dimensions (exposure, automation, augmentation) using a written rubric, then
+rolled up to occupations weighted by O\*NET task importance. The full scoring
+system, calibration, formulas, and the three analytical axes (industry, region
+with state/metro/nonmetro granularity, and wage band) live in
+**[`ai_exposure_index/`](ai_exposure_index/README.md)** — start there for the
+metric itself. The final scores are in
+`ai_exposure_index/data/task_ai_scores_v2_full_*.csv`.
+
+**Exposure measures how much AI can touch the work. It is not a prediction of
+unemployment.** A transparent importance-only placeholder
+(`ANALYTICS.AI_EXPOSURE_PLACEHOLDER`) is still kept as an automatic fallback for
+running the pipeline before real scores are loaded, but the delivered result
+uses the real scores.
 
 ---
 
@@ -101,10 +108,18 @@ ai_labor_snowflake/
 │   ├── 01_create_raw_tables.sql  ← RAW landing tables (text)
 │   ├── 02_load_raw_data.sql      ← stage + COPY INTO (reference/manual)
 │   ├── 03_create_staging_views.sql ← clean, cast, standardize OCC_CODE
-│   ├── 04_create_analytics_tables.sql ← star schema + placeholder exposure
+│   ├── 04_create_analytics_tables.sql ← star schema + fallback placeholder
 │   ├── 05_quality_checks.sql     ← 10 data-quality checks
 │   ├── 06_refresh_analytics.sql  ← rebuild log for automated refreshes
 │   └── 07_create_service_user.sql ← TYPE=SERVICE user + key-pair auth (automation)
+├── ai_exposure_index/            ← THE REAL AI EXPOSURE METRIC (start here)
+│   ├── README.md                 ← metric, formulas, three axes, how to run
+│   ├── rubric/                   ← versioned scoring rubric + prompt template
+│   ├── scoring/                  ← Claude task scorer (schema + score_tasks.py)
+│   ├── calibration/              ← human-vs-model calibration harness
+│   ├── sql/09-17                 ← scores → occupation index → 3 axes → views → QC
+│   ├── validate_offline.py       ← reproduces the axis math offline (no Snowflake)
+│   └── data/                     ← final task AI scores CSV
 ├── python/
 │   ├── sf_connect.py             ← shared connector (browser OR key-pair auth)
 │   ├── prepare_data.py           ← xlsx → CSV; stage O*NET txt files
@@ -202,7 +217,7 @@ Use a role that can create warehouses/databases for `00` (e.g. `SYSADMIN`).
 | 01 | `sql/01_create_raw_tables.sql`  | RAW landing tables |
 | 02 | `sql/02_load_raw_data.sql`      | File formats + stage + COPY INTO *(reference)* |
 | 03 | `sql/03_create_staging_views.sql` | Cleaned/standardized STAGING views |
-| 04 | `sql/04_create_analytics_tables.sql` | Star schema + placeholder exposure |
+| 04 | `sql/04_create_analytics_tables.sql` | Star schema + dimensions (+ fallback placeholder) |
 | 05 | `sql/05_quality_checks.sql`     | Data-quality checks → `QUALITY.DQ_RESULTS` |
 
 ### Loading the data (step 02, the easy way)
@@ -285,9 +300,11 @@ for service accounts. Schedule it with launchd / cron / GitHub Actions
 
 ## 9. Reports & visualizations
 
-Open **`reports/index.html`** in any browser for an interactive summary of the
-whole build: data profile, pipeline layers, star schema, exposure distribution,
-and quality checks. Regenerate it anytime with:
+Open **`reports/index.html`** in any browser for the interactive report (the
+project's headline deliverable): data profile, pipeline steps, the real exposure
+distribution, an interactive explorer to compare exposure by industry / region /
+wage band, top occupations, a policy-implications section, and quality checks.
+Regenerate it anytime with:
 
 ```bash
 python python/build_report.py
