@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  com.ailabor.refresh.plist  -  macOS launchd job (native, survives reboots).
+
+  This is the recommended scheduler on macOS (more reliable than cron on a
+  laptop: if the machine was asleep at the scheduled time, launchd runs the job
+  when it next wakes).
+
+  INSTALL:
+    1. Edit the two absolute paths below to match your machine.
+    2. Copy into your LaunchAgents folder:
+         cp scheduling/com.ailabor.refresh.plist ~/Library/LaunchAgents/
+    3. Load it:
+         launchctl load ~/Library/LaunchAgents/com.ailabor.refresh.plist
+    4. Test immediately:
+         launchctl start com.ailabor.refresh
+    5. Check logs in the project's logs/ folder.
+
+  UNLOAD:
+    launchctl unload ~/Library/LaunchAgents/com.ailabor.refresh.plist
+
+  This example runs every Monday at 06:15.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.ailabor.refresh</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <!-- EDIT: absolute path to run_refresh.sh -->
+        <string>/Users/you/ai_labor_snowflake/scheduling/run_refresh.sh</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- EDIT: absolute path to the project root -->
+        <key>AI_LABOR_HOME</key>
+        <string>/Users/you/ai_labor_snowflake</string>
+    </dict>
+
+    <!-- Weekly: Monday (Weekday=1) at 06:15 -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Weekday</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>6</integer>
+        <key>Minute</key>
+        <integer>15</integer>
+    </dict>
+
+    <!-- If the Mac was asleep at the scheduled time, run at next wake. -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/you/ai_labor_snowflake/logs/launchd_out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/you/ai_labor_snowflake/logs/launchd_err.log</string>
+</dict>
+</plist>

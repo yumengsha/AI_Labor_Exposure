@@ -1,0 +1,12 @@
+# Dependencies for the AI exposure index scoring + calibration.
+# Install:  pip install -r ai_exposure_index/requirements.txt
+
+# Claude scoring
+anthropic>=0.69.0
+pydantic>=2.0.0
+
+# Local .env loading (optional but convenient)
+python-dotenv>=1.0.0
+
+# Data handling + calibration stats + offline SQL reproduction
+pandas>=2.0.0

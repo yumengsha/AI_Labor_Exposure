@@ -1,0 +1,36 @@
+# Secrets & local config — never commit
+.env
+.env.*
+!.env.example
+# Stray/mistyped env copies (e.g. ".envSNOWFLAKE_ACCOUNT=...")
+.env[A-Z]*
+# Private keys and key material
+keys/
+*.p8
+*.pub
+account_info.txt
+
+# Prepared / downloaded source data (large, regenerable from prepare_data.py)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+# Keep the human calibration annotations (calibration evidence)
+!data/processed/calibration_sample_preannotated.csv
+
+# AI exposure index: ignore scratch CSVs but KEEP the final full-run scores
+ai_exposure_index/data/*
+!ai_exposure_index/data/.gitkeep
+!ai_exposure_index/data/task_ai_scores_v2_full_*.csv
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Automation runtime
+logs/
+.source_manifest.json
+
+# OS
+.DS_Store

@@ -1,0 +1,24 @@
+# ---------------------------------------------------------------------------
+# crontab.example  -  Linux / macOS cron schedule for the AI-labor refresh.
+#
+# Install with:   crontab -e     (then paste the line below, edited for paths)
+# List current:   crontab -l
+#
+# Cadence rationale:
+#   * BLS OEWS updates ONCE a year (spring). O*NET updates QUARTERLY.
+#   * So a WEEKLY check is more than enough. The pipeline exits immediately
+#     ("NO_UPDATES") when nothing changed, so frequent runs are cheap.
+#
+# The 5 fields are:  minute hour day-of-month month day-of-week
+# ---------------------------------------------------------------------------
+
+# Every Monday at 06:15, check for new data and (with --load in the script)
+# refresh Snowflake. Set AI_LABOR_HOME so the wrapper finds the project.
+15 6 * * 1  AI_LABOR_HOME=/Users/you/ai_labor_snowflake /Users/you/ai_labor_snowflake/scheduling/run_refresh.sh
+
+# --- Alternatives ----------------------------------------------------------
+# Daily at 06:15 (cheap because it no-ops when nothing changed):
+# 15 6 * * *  AI_LABOR_HOME=/Users/you/ai_labor_snowflake /Users/you/ai_labor_snowflake/scheduling/run_refresh.sh
+#
+# First day of each quarter at 07:00 (aligns with O*NET's quarterly cadence):
+# 0 7 1 1,4,7,10 *  AI_LABOR_HOME=/Users/you/ai_labor_snowflake /Users/you/ai_labor_snowflake/scheduling/run_refresh.sh

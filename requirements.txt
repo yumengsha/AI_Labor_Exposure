@@ -1,0 +1,18 @@
+# Python dependencies for the AI labor Snowflake project.
+# Install with:  pip install -r requirements.txt
+
+# Snowflake Python connector (includes PUT/COPY support + external browser auth).
+snowflake-connector-python>=3.7.0
+
+# Required for key-pair (JWT) authentication used by the automated refresh job.
+cryptography>=41.0.0
+
+# Reads the local .env file so you don't have to export env vars by hand.
+python-dotenv>=1.0.0
+
+# Reads the BLS OEWS .xlsx workbooks in prepare_data.py.
+openpyxl>=3.1.0
+
+# Only needed if you want to regenerate the visualizations/report locally.
+# (The pre-built report in reports/ is self-contained and needs nothing.)
+pandas>=2.0.0
