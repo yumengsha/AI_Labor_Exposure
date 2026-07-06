@@ -11,6 +11,23 @@ built for downstream **Tableau** dashboards.
 > industry/region/wage*, and *how results can guide workforce planning and
 > reskilling*.
 
+## Interactive report
+
+The headline deliverable is an interactive report at
+[`reports/index.html`](reports/index.html). Download it and open in any browser
+for the full interactive version (or publish it with GitHub Pages — see below).
+Previews:
+
+![Report overview](docs/images/report-overview.png)
+
+**Explore exposure by axis** — switch between industry, region (state / metro /
+nonmetro), and wage band:
+
+![Interactive axis explorer](docs/images/axis-explorer.png)
+
+> Exposure measures how much AI can touch the work. It is **not** a prediction of
+> unemployment.
+
 ---
 
 ## 1. What gets built
@@ -309,6 +326,20 @@ Regenerate it anytime with:
 ```bash
 python python/build_report.py
 ```
+
+### Publish the interactive report with GitHub Pages
+
+GitHub shows `.html` as source, not a rendered page. To get a clickable live link
+with full interactivity:
+
+1. On GitHub: **Settings → Pages**.
+2. Under **Build and deployment → Source**, choose **Deploy from a branch**.
+3. Set **Branch = `main`** and **folder = `/ (root)`**, then **Save**.
+4. After a minute, the report is live at
+   `https://yumengsha.github.io/AI_Labor_Exposure/reports/index.html`.
+
+(The static previews above are in `docs/images/` so the report is visible on the
+repo home page even without Pages enabled.)
 
 ---
 
