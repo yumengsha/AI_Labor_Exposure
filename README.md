@@ -76,7 +76,7 @@ uses the real scores.
 
 ---
 
-## 2. The occupation-code join (important!)
+## 2. The occupation-code join
 
 O\*NET and BLS use *almost* the same occupation codes:
 
